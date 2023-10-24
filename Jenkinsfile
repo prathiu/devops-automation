@@ -19,24 +19,22 @@ pipeline {
         sh 'mvn clean package'
       }
     }
-        stage('Build docker image'){
-            steps{
-                script{
-                    sh 'docker build -t prathiusha/devops-integration .'
-                }
+    stage('Build and Push Docker Image') {
+      environment {
+        DOCKER_IMAGE = "prathiusha/devops-integration"
+        // DOCKERFILE_LOCATION = "java-maven-sonar-argocd-helm-k8s/spring-boot-app/Dockerfile"
+        REGISTRY_CREDENTIALS = credentials('docker')
+      }
+      steps {
+        script {
+            sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && docker build -t prathiusha/devops-integration .'
+            def dockerImage = docker.image("prathiusha/devops-integration")
+            docker.withRegistry('https://index.docker.io/v1/', "docker") {
+                dockerImage.push()
             }
         }
-        stage('Push image to Hub'){
-            steps{
-                script{
-                   withCredentials([string(credentialsId: 'docker', variable: 'docker')]) {
-                   sh 'docker login -u prathiusha -p ${docker}'
-
-}
-                   sh 'docker push prathiusha/devops-integration'
-                }
-            }
-        }
+      }
+    }
         stage('Deploy to k8s'){
             steps{
                 script{
