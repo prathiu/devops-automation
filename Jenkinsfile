@@ -18,16 +18,14 @@ pipeline {
             }
         }
         stage('Push image to Hub'){
-         environment {
-           DOCKERHUB-CREDENTIALS = credentials('docker')
-             registry = "prathiusha/devops-integration"
-               registryCredential = 'docker'
-         }
+         
+         
             steps{
                 script{
-                    sh 'cd webapp && docker build -t prathiusha/devops-integration .'
-                     sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                      sh 'docker push prathiusha/devops-integration'
+                    sh 'docker build -t prathiusha/devops-integration .'
+                    withCredentials([string(credentialsId: 'docker', variable: 'docker')]) {
+                    sh 'docker login -u javatechie -p ${docker}'
+                    sh 'docker push prathiusha/devops-integration'
 }
                 }
             }
